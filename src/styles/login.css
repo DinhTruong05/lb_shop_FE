@@ -1,0 +1,83 @@
+/* ================================
+   FULL WRAPPER (2 columns layout)
+================================ */
+.login-wrapper {
+  @apply min-h-screen bg-blue-500 flex items-center justify-center p-4;
+}
+
+/* ================================
+   LEFT SIDE
+================================ */
+.login-left {
+  @apply bg-white h-[650px] w-1/2 rounded-l-2xl overflow-hidden relative shadow-xl;
+}
+
+.login-left-img {
+  @apply w-full h-full object-cover;
+}
+
+.login-left-overlay {
+  @apply absolute top-10 left-10 text-white drop-shadow-lg;
+}
+
+.login-left-title {
+  @apply text-4xl font-bold mb-2;
+}
+
+.login-left-desc {
+  @apply text-sm max-w-xs leading-relaxed;
+}
+
+/* ================================
+   RIGHT SIDE
+================================ */
+.login-right {
+  @apply bg-white h-[650px] w-1/2 rounded-r-2xl flex items-center justify-center shadow-xl;
+}
+
+/* ================================
+   LOGIN BOX STYLE
+================================ */
+.login-box {
+  @apply w-[80%] max-w-md;
+}
+
+.login-title {
+  @apply text-4xl font-bold text-blue-600 text-center mb-2;
+}
+
+.login-subtitle {
+  @apply text-gray-500 text-center mb-8;
+}
+
+/* LABEL */
+.login-label {
+  @apply block mb-1 font-semibold text-gray-700;
+}
+
+/* INPUT */
+.login-input {
+  @apply w-full p-3 border border-gray-300 rounded-lg transition;
+}
+
+.login-input:focus {
+  @apply outline-none border-blue-500 ring-2 ring-blue-200;
+}
+
+/* BUTTON */
+.login-btn {
+  @apply w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg text-lg font-medium mt-3 transition;
+}
+
+.login-btn:disabled {
+  @apply opacity-60 cursor-not-allowed;
+}
+
+/* REGISTER TEXT */
+.login-register {
+  @apply text-center text-gray-600 mt-6;
+}
+
+.login-register span {
+  @apply text-blue-600 font-semibold cursor-pointer hover:underline;
+}
