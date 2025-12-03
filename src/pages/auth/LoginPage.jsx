@@ -20,8 +20,12 @@ export default function LoginPage() {
     try {
       const res = await authApi.login(form.username, form.password);
 
+      console.log("Login Response: ", res);
+
       localStorage.setItem("access_token", res.accessToken);
       localStorage.setItem("role", res.role);
+      localStorage.setItem("fullName", res.fullName);
+
 
       toast.success("Đăng nhập thành công!");
       navigate("/dashboard");

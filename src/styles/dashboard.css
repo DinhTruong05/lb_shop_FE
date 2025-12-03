@@ -1,0 +1,23 @@
+.dashboard-card {
+    @apply p-6 rounded-xl shadow-md border bg-white 
+           hover:shadow-lg transition-all duration-300 
+           relative overflow-hidden;
+  }
+  
+  .dashboard-card:hover {
+    @apply -translate-y-1;
+  }
+  
+  .icon-wrapper {
+    @apply w-12 h-12 flex items-center justify-center 
+           rounded-xl mb-3 shadow-sm;
+  }
+  
+  .card-label {
+    @apply text-gray-600 text-sm font-medium;
+  }
+  
+  .card-value {
+    @apply text-3xl font-bold mt-1 text-gray-800;
+  }
+  
