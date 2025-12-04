@@ -36,8 +36,8 @@ export default function AppRouter() {
           {/* Books CRUD */}
           <Route path="books" element={<BookListPage />} />
           <Route path="books/add" element={<AddBookPage />} />
-          <Route path="books/:id" element={<BookDetailPage />} />
           <Route path="books/edit/:id" element={<EditBookPage />} />
+          <Route path="books/:id" element={<BookDetailPage />} />
         </Route>
 
         {/* Fallback */}
