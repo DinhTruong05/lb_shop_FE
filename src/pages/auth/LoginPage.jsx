@@ -25,7 +25,8 @@ export default function LoginPage() {
       localStorage.setItem("access_token", res.accessToken);
       localStorage.setItem("role", res.role);
       localStorage.setItem("fullName", res.fullName);
-
+      localStorage.setItem("avatar", res.avatar);
+      localStorage.setItem("username", res.username);
 
       toast.success("Đăng nhập thành công!");
       navigate("/dashboard");
@@ -38,23 +39,23 @@ export default function LoginPage() {
 
   return (
     <div className="login-wrapper">
-
       {/* LEFT SIDE */}
       <div className="login-left">
-        <img src="/images/thuvien.jpg" className="login-left-img" alt="travel" />
+        <img
+          src="/images/thuvien.jpg"
+          className="login-left-img"
+          alt="travel"
+        />
 
         <div className="login-left-overlay">
           <h2 className="login-left-title">Library Hub</h2>
-          <p className="login-left-desc">
-            Find peace in every page.
-          </p>
+          <p className="login-left-desc">Find peace in every page.</p>
         </div>
       </div>
 
       {/* RIGHT SIDE */}
       <div className="login-right">
         <form onSubmit={handleSubmit} className="login-box">
-
           <h2 className="login-title">Welcome</h2>
           <p className="login-subtitle">Login with Email</p>
 
@@ -87,7 +88,7 @@ export default function LoginPage() {
           </button>
 
           <p className="login-register">
-            Don’t have an account? <span>Register now</span>
+            Don’t have an account? <span onClick={() => navigate("/register")}>Register now</span>
           </p>
         </form>
       </div>

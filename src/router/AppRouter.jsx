@@ -8,6 +8,7 @@ import BookListPage from "../pages/books/BookListPage";
 import BookDetailPage from "../pages/books/BookDetailPage";
 import AddBookPage from "../pages/books/AddBookPage";
 import EditBookPage from "../pages/books/EditBookPage";
+import RegisterPage from "../pages/auth/RegisterPage";
 
 function PrivateRoute({ children }) {
   const token = localStorage.getItem("access_token");
@@ -20,6 +21,7 @@ export default function AppRouter() {
       <Routes>
         {/* ---- PUBLIC ROUTES ---- */}
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
 
         {/* ---- PRIVATE ROUTES ---- */}
         <Route

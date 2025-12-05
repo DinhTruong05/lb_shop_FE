@@ -2,6 +2,11 @@ export default function MainHeader() {
 
   const name = localStorage.getItem("fullName");
   const username = localStorage.getItem("username");
+  const avatar = localStorage.getItem("avatar");
+
+  const avatarUrl = avatar && avatar !== "null" && avatar !== ""
+    ? avatar
+    : "https://i.pravatar.cc/150?u=" + username; // fallback theo username
 
   return (
     <header className="h-16 bg-white shadow-sm border-b flex items-center justify-between px-6">
@@ -29,7 +34,7 @@ export default function MainHeader() {
 
         {/* Avatar */}
         <img
-          src="https://i.pravatar.cc/40"
+          src={avatarUrl}
           alt="avatar"
           className="w-10 h-10 rounded-full border"
         />
