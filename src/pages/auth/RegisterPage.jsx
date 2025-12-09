@@ -1,163 +1,189 @@
 import { useState } from "react";
-import { authApi } from "../../api/authApi";
-import { uploadApi } from "../../api/uploadApi"; // ⭐ API upload riêng
 import { useNavigate } from "react-router-dom";
+import { authApi } from "../../api/authApi";
+import { toast } from "sonner";
 
 export default function RegisterPage() {
   const navigate = useNavigate();
 
   const [form, setForm] = useState({
     fullName: "",
-    username: "",
     email: "",
+    username: "",
     password: "",
-    avatar: "",       // ⭐ Lưu URL từ server
-    role: "READER",   // ⭐ ALWAYS READER
+    confirmPassword: "",
   });
 
-  const [preview, setPreview] = useState(null);
-  const [error, setError] = useState("");
-
-  // Gen input change
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  // ⭐ Upload file avatar → lấy URL từ server
-  const handleFileChange = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    // Preview ảnh
-    setPreview(URL.createObjectURL(file));
-
-    try {
-      const url = await uploadApi.uploadAvatar(file);
-      console.log("🔥 Avatar uploaded URL:", url);
-
-      setForm((prev) => ({
-        ...prev,
-        avatar: url,
-        role: "READER",
-      }));
-    } catch (err) {
-      console.error("Upload error:", err);
-      alert("Upload avatar failed!");
-    }
-  };
-
-  // Submit form đăng ký
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError("");
+
+    if (form.password !== form.confirmPassword) {
+      toast.error("Passwords do not match!");
+      return;
+    }
 
     try {
-      console.log("🔥 FORM SUBMIT:", form);
+      await authApi.register({
+        fullName: form.fullName,
+        email: form.email,
+        username: form.username,
+        password: form.password,
+      });
 
-      await authApi.register(form);
-
-      alert("Đăng ký thành công! Hãy đăng nhập.");
+      toast.success("Account created successfully!");
       navigate("/login");
     } catch (err) {
-      setError(err.response?.data?.message || "Đăng ký thất bại");
+      console.error(err);
+      toast.error("Registration failed!");
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-blue-50">
-      <div className="bg-white p-8 shadow-xl rounded-lg w-full max-w-md border">
+    <div className="bg-background-dark min-h-screen flex items-center justify-center p-6 font-display">
 
-        <h2 className="text-2xl font-bold text-center text-blue-600 mb-6">
-          Create an Account
-        </h2>
+      <div className="w-full max-w-md flex flex-col items-center gap-8">
 
-        {error && (
-          <p className="mb-4 text-red-500 text-center font-medium">{error}</p>
-        )}
+        {/* Header */}
+        <div className="flex items-center gap-2">
+          <span className="material-symbols-outlined text-4xl text-primary">local_library</span>
+          <h1 className="text-white text-2xl font-bold">Library System</h1>
+        </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        {/* Card */}
+        <div className="w-full flex flex-col gap-8 rounded-xl bg-[#101723] p-8 border border-white/10 shadow-xl">
 
-          <div>
-            <label className="font-medium">Full Name</label>
-            <input
-              type="text"
-              name="fullName"
-              value={form.fullName}
-              onChange={handleChange}
-              required
-              className="input"
-            />
+          {/* Title */}
+          <div className="flex flex-col gap-2">
+            <p className="text-white text-3xl font-black tracking-tight">Create Your Account</p>
+            <p className="text-[#90a7cb] text-base">Join the Library System to manage rentals and more.</p>
           </div>
 
-          <div>
-            <label className="font-medium">Username</label>
-            <input
-              type="text"
-              name="username"
-              value={form.username}
-              onChange={handleChange}
-              required
-              className="input"
-            />
-          </div>
+          <form onSubmit={handleSubmit} className="flex flex-col gap-6">
 
-          <div>
-            <label className="font-medium">Email</label>
-            <input
-              type="email"
-              name="email"
-              value={form.email}
-              onChange={handleChange}
-              required
-              className="input"
-            />
-          </div>
-
-          <div>
-            <label className="font-medium">Password</label>
-            <input
-              type="password"
-              name="password"
-              value={form.password}
-              onChange={handleChange}
-              required
-              className="input"
-            />
-          </div>
-
-          {/* ⭐ Upload Avatar */}
-          <div>
-            <label className="font-medium">Avatar</label>
-            <input
-              type="file"
-              accept="image/*"
-              onChange={handleFileChange}
-              className="input"
-            />
-
-            {preview && (
-              <img
-                src={preview}
-                alt="preview"
-                className="w-20 h-20 rounded-full mt-2 object-cover"
+            {/* Full Name */}
+            <label className="flex flex-col flex-1">
+              <p className="text-white text-sm font-medium mb-2">Full Name</p>
+              <input
+                name="fullName"
+                value={form.fullName}
+                onChange={handleChange}
+                className="h-12 bg-[#223149] text-white rounded-lg p-3 placeholder-[#90a7cb]
+                           focus:ring-2 focus:ring-primary/50 outline-none"
+                placeholder="Enter your full name"
               />
-            )}
-          </div>
+            </label>
 
-          <button
-            type="submit"
-            className="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition"
-          >
-            Register
-          </button>
-        </form>
+            {/* Email */}
+            <label className="flex flex-col flex-1">
+              <p className="text-white text-sm font-medium mb-2">Email Address</p>
+              <div className="flex">
+                <input
+                  name="email"
+                  value={form.email}
+                  onChange={handleChange}
+                  type="email"
+                  className="h-12 bg-[#223149] text-white rounded-l-lg flex-1 p-3
+                             placeholder-[#90a7cb] focus:ring-2 focus:ring-primary/50 outline-none"
+                  placeholder="Enter your email address"
+                />
+                <div className="bg-[#223149] px-3 flex items-center rounded-r-lg text-[#90a7cb]">
+                  <span className="material-symbols-outlined">mail</span>
+                </div>
+              </div>
+            </label>
 
-        <p className="text-center text-sm text-gray-600 mt-4">
-          Already have an account?{" "}
-          <a href="/login" className="text-blue-600 font-medium hover:underline">
-            Login
-          </a>
-        </p>
+            {/* Username */}
+            <label className="flex flex-col flex-1">
+              <p className="text-white text-sm font-medium mb-2">Username</p>
+              <input
+                name="username"
+                value={form.username}
+                onChange={handleChange}
+                className="h-12 bg-[#223149] text-white rounded-lg p-3 placeholder-[#90a7cb]
+                           focus:ring-2 focus:ring-primary/50 outline-none"
+                placeholder="Choose a username"
+              />
+            </label>
+
+            {/* Password */}
+            <label className="flex flex-col flex-1">
+              <p className="text-white text-sm font-medium mb-2">Password</p>
+              <div className="flex">
+                <input
+                  name="password"
+                  type="password"
+                  value={form.password}
+                  onChange={handleChange}
+                  className="h-12 bg-[#223149] text-white rounded-l-lg flex-1 p-3 
+                             placeholder-[#90a7cb] focus:ring-2 focus:ring-primary/50 outline-none"
+                  placeholder="Enter your password"
+                />
+                <button
+                  type="button"
+                  className="bg-[#223149] px-3 flex items-center rounded-r-lg text-[#90a7cb]"
+                >
+                  <span className="material-symbols-outlined">visibility</span>
+                </button>
+              </div>
+            </label>
+
+            {/* Confirm Password */}
+            <label className="flex flex-col flex-1">
+              <p className="text-white text-sm font-medium mb-2">Confirm Password</p>
+              <div className="flex">
+                <input
+                  name="confirmPassword"
+                  type="password"
+                  value={form.confirmPassword}
+                  onChange={handleChange}
+                  className="h-12 bg-[#223149] text-white rounded-l-lg flex-1 p-3 
+                             placeholder-[#90a7cb] focus:ring-2 focus:ring-primary/50 outline-none"
+                  placeholder="Confirm your password"
+                />
+                <button
+                  type="button"
+                  className="bg-[#223149] px-3 flex items-center rounded-r-lg text-[#90a7cb]"
+                >
+                  <span className="material-symbols-outlined">visibility_off</span>
+                </button>
+              </div>
+            </label>
+
+            {/* Password strength indicator */}
+            <div className="flex flex-col gap-2">
+              <div className="flex justify-between">
+                <p className="text-white text-sm">Password Strength</p>
+                <p className="text-primary text-sm font-bold">Weak</p>
+              </div>
+              <div className="h-2 bg-[#314668] rounded-full">
+                <div className="h-2 bg-primary rounded-full" style={{ width: "25%" }}></div>
+              </div>
+            </div>
+
+            {/* Register Button */}
+            <button
+              type="submit"
+              className="h-12 rounded-lg bg-primary text-white font-bold 
+                         shadow-[0_0_15px_rgba(60,131,246,0.5)]
+                         hover:shadow-[0_0_25px_rgba(60,131,246,0.7)]"
+            >
+              Register
+            </button>
+
+            <p className="text-[#90a7cb] text-sm text-center">
+              Already have an account?{" "}
+              <span className="text-primary cursor-pointer hover:text-primary/80"
+                onClick={() => navigate("/login")}
+              >
+                Log in
+              </span>
+            </p>
+          </form>
+        </div>
       </div>
     </div>
   );

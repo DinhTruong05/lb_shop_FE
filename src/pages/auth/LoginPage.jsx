@@ -2,7 +2,6 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { authApi } from "../../api/authApi";
 import { toast } from "sonner";
-import "../../styles/login.css";
 
 export default function LoginPage() {
   const navigate = useNavigate();
@@ -20,77 +19,126 @@ export default function LoginPage() {
     try {
       const res = await authApi.login(form.username, form.password);
 
-      console.log("Login Response: ", res);
-
       localStorage.setItem("access_token", res.accessToken);
-      localStorage.setItem("role", res.role);
-      localStorage.setItem("fullName", res.fullName);
-      localStorage.setItem("avatar", res.avatar);
-      localStorage.setItem("username", res.username);
+      localStorage.setItem("user", JSON.stringify(res));
 
-      toast.success("Đăng nhập thành công!");
-      navigate("/dashboard");
+      toast.success("Login successful!");
+
+      if (res.role === "ADMIN") navigate("/admin/dashboard");
+      else navigate("/reader/home");
     } catch (err) {
-      toast.error("Sai tài khoản hoặc mật khẩu!");
+      console.error("Login failed", err);
+      toast.error("Invalid username or password!");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="login-wrapper">
-      {/* LEFT SIDE */}
-      <div className="login-left">
-        <img
-          src="/images/thuvien.jpg"
-          className="login-left-img"
-          alt="travel"
-        />
+    <div className="min-h-screen w-full flex items-center justify-center bg-[#050505] relative overflow-hidden">
+      {/* LEFT PURPLE GLOW */}
+      <div
+        className="pointer-events-none absolute -left-[22%] top-[10%] 
+                      w-[650px] h-[650px] rounded-full
+                      bg-[radial-gradient(circle_farthest-side,rgba(255,0,182,0.18),rgba(0,0,0,0))]"
+      ></div>
 
-        <div className="login-left-overlay">
-          <h2 className="login-left-title">Library Hub</h2>
-          <p className="login-left-desc">Find peace in every page.</p>
-        </div>
-      </div>
+      {/* RIGHT CYAN GLOW */}
+      <div
+        className="pointer-events-none absolute -right-[22%] bottom-[-10%] 
+                      w-[650px] h-[650px] rounded-full
+                      bg-[radial-gradient(circle_farthest-side,rgba(0,255,255,0.15),rgba(0,0,0,0))]"
+      ></div>
 
-      {/* RIGHT SIDE */}
-      <div className="login-right">
-        <form onSubmit={handleSubmit} className="login-box">
-          <h2 className="login-title">Welcome</h2>
-          <p className="login-subtitle">Login with Email</p>
+      {/* LOGIN CARD */}
+      <div
+        className="relative w-full max-w-md p-10 rounded-2xl border border-white/10 
+                      bg-[#121212]/80 shadow-[0_0_80px_rgba(0,0,0,0.6)] backdrop-blur-xl"
+      >
+        {/* TITLE */}
+        <h1 className="text-center text-white text-2xl font-bold">
+          Library Admin Portal
+        </h1>
+        <p className="text-center text-gray-400 text-sm mt-1">
+          Sign in to your account
+        </p>
 
-          <div className="mb-4">
-            <label className="login-label">Username</label>
-            <input
-              name="username"
-              value={form.username}
-              onChange={handleChange}
-              className="login-input"
-              placeholder="Enter username"
-              autoComplete="off"
-            />
+        {/* FORM */}
+        <form onSubmit={handleSubmit} className="mt-8 flex flex-col gap-5">
+          {/* Username */}
+          <div>
+            <label className="text-gray-300 text-sm font-medium">
+              Username or Email
+            </label>
+            <div className="relative mt-1">
+              <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">
+                person
+              </span>
+              <input
+                name="username"
+                value={form.username}
+                onChange={handleChange}
+                className="w-full h-12 rounded-lg bg-[#1e1e1e] text-white pl-10 pr-4 
+                           placeholder-gray-500 border border-transparent 
+                           focus:border-cyan-400 focus:outline-none"
+                placeholder="Enter your username or email"
+              />
+            </div>
           </div>
 
-          <div className="mb-4">
-            <label className="login-label">Password</label>
-            <input
-              name="password"
-              type="password"
-              value={form.password}
-              onChange={handleChange}
-              className="login-input"
-              placeholder="Enter password"
-            />
+          {/* Password */}
+          <div>
+            <label className="text-gray-300 text-sm font-medium">
+              Password
+            </label>
+            <div className="relative mt-1">
+              <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">
+                lock
+              </span>
+              <input
+                type="password"
+                name="password"
+                value={form.password}
+                onChange={handleChange}
+                className="w-full h-12 rounded-lg bg-[#1e1e1e] text-white pl-10 pr-4 
+                           placeholder-gray-500 border border-transparent 
+                           focus:border-cyan-400 focus:outline-none"
+                placeholder="Enter your password"
+              />
+            </div>
           </div>
 
-          <button type="submit" disabled={loading} className="login-btn">
-            {loading ? "Processing..." : "Login"}
+          {/* Forgot Password */}
+          <button
+            type="button"
+            className="text-xs text-cyan-300 hover:text-cyan-200 underline-offset-4 
+             hover:underline transition-colors cursor-pointer p-0 bg-transparent border-0"
+          >
+            Forgot Password?
           </button>
 
-          <p className="login-register">
-            Don’t have an account? <span onClick={() => navigate("/register")}>Register now</span>
-          </p>
+          {/* Login Button */}
+          <button
+            type="submit"
+            disabled={loading}
+            className="h-12 rounded-lg bg-gradient-to-r from-cyan-400 to-fuchsia-500 
+                       shadow-[0_0_20px_rgba(0,255,255,0.4)] text-black font-semibold 
+                       hover:opacity-90 transition"
+          >
+            {loading ? "Processing..." : "Login"}
+          </button>
         </form>
+
+        {/* Register link */}
+        <p className="text-center text-gray-400 text-sm mt-6">
+          Don't have an account?{" "}
+          <span
+            className="text-cyan-300 cursor-pointer hover:text-cyan-200"
+            onClick={() => navigate("/register")}
+          >
+            Register
+          </span>
+        </p>
       </div>
     </div>
   );

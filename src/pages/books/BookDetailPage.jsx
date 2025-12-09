@@ -1,44 +1,41 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
 import { getBookById } from "../../api/bookApi";
-
+import { useParams, useNavigate } from "react-router-dom";
 
 export default function BookDetailPage() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [book, setBook] = useState(null);
 
   useEffect(() => {
     getBookById(id).then(setBook);
   }, [id]);
 
-  if (!book) return <p>Đang tải...</p>;
+  if (!book) return <p className="text-white">Loading...</p>;
 
   return (
-    <div className="p-6 max-w-3xl mx-auto">
-      <div className="flex gap-6">
-        <img
-          src={book.image}
-          alt={book.title}
-          className="w-60 h-80 object-cover rounded shadow"
-        />
+    <div className="bg-[#1b2537] p-6 rounded-xl border border-white/10 text-white">
 
-        <div>
-          <h2 className="text-3xl font-bold">{book.title}</h2>
-          <p className="text-gray-700 mt-2">Tác giả: {book.author}</p>
+      {/* BACK BUTTON */}
+      <button
+        onClick={() => navigate("/admin/books")}
+        className="mb-4 flex items-center gap-2 text-blue-400 hover:text-blue-300 
+                   transition font-medium"
+      >
+        <span className="material-symbols-outlined text-lg">arrow_back</span>
+        Back to Book List
+      </button>
 
-          <p className="text-2xl text-blue-600 font-bold mt-4">
-            {book.pricePerDay.toLocaleString()}đ / ngày
-          </p>
+      <h2 className="text-3xl font-bold">{book.title}</h2>
+      <p className="text-white/70 mt-2">{book.author}</p>
 
-          <p className="mt-6 text-gray-700 leading-relaxed">
-            {book.description}
-          </p>
+      <img src={book.image} className="w-48 rounded-lg my-4" />
 
-          <button className="mt-6 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-            Thuê ngay
-          </button>
-        </div>
-      </div>
+      <p className="mt-4">{book.description}</p>
+
+      <p className="mt-4 font-bold text-primary text-xl">
+        {book.pricePerDay} $ / day
+      </p>
     </div>
   );
 }

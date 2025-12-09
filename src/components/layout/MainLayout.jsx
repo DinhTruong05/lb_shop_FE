@@ -1,21 +1,22 @@
-import MainHeader from "./MainHeader";
-import Sidebar from "./Sidebar";
 import { Outlet } from "react-router-dom";
+import SideNavBar from "../SideNavBar";
+import TopNavBar from "../TopNavBar";
 
 export default function MainLayout() {
   return (
-    <div className="flex">
-      
-      <Sidebar />
+    <div className="flex min-h-screen bg-[#0f172a]">
+      {/* LEFT SIDEBAR */}
+      <SideNavBar />
 
-      <div className="flex-1 flex flex-col">
-        <MainHeader />
+      {/* MAIN CONTENT */}
+      <main className="flex-1 p-8">
+        <TopNavBar />
 
-        <main className="p-4 bg-gray-50 min-h-screen">
+        {/* RENDER PAGE */}
+        <div className="mt-8">
           <Outlet />
-        </main>
-      </div>
-
+        </div>
+      </main>
     </div>
   );
 }

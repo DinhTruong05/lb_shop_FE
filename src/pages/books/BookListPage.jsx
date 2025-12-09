@@ -4,78 +4,109 @@ import { Link } from "react-router-dom";
 
 export default function BookListPage() {
   const [books, setBooks] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  // Load danh sách sách
+  // =====================
+  // Fetch Books
+  // =====================
   useEffect(() => {
     fetchBooks();
   }, []);
 
   const fetchBooks = async () => {
-    const data = await getAllBooks();
-    setBooks(data);
+    try {
+      const data = await getAllBooks();
+      setBooks(data);
+    } catch (err) {
+      console.error("Error fetching books:", err);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  // Delete book
   const handleDelete = async (id) => {
-    if (!confirm("Bạn có chắc muốn xóa sách này?")) return;
-
+    if (!confirm("Bạn chắc chắn xoá sách này?")) return;
     await deleteBook(id);
-
-    // Cập nhật lại list mà không reload trang
-    setBooks((prev) => prev.filter((b) => b.id !== id));
+    fetchBooks();
   };
+
+  if (loading) {
+    return <p className="text-white text-center mt-10">Loading...</p>;
+  }
 
   return (
-    <div className="p-6">
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold">📚 Danh sách sách</h2>
+    <div className="bg-[#1b2537] p-6 rounded-xl border border-white/10">
+      {/* Header */}
+      <div className="flex justify-between mb-6">
+        <h2 className="text-white text-2xl font-bold">📚 Books Management</h2>
 
         <Link
-          to="/books/add"
-          className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+          to="/admin/books/add"
+          className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/80"
         >
-          ➕ Thêm sách
+          + Add Book
         </Link>
       </div>
 
-      {/* Grid hiển thị sách */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6">
-        {books.map((book) => (
-          <div
-            key={book.id}
-            className="border p-3 rounded bg-white shadow hover:shadow-lg transition"
-          >
-            <Link to={`/books/${book.id}`}>
-              <img
-                src={book.image}
-                className="w-full h-48 object-cover rounded"
-              />
+      {/* Empty */}
+      {books.length === 0 && (
+        <p className="text-white/60 text-center py-8">
+          Không có sách nào trong hệ thống.
+        </p>
+      )}
 
-              <p className="mt-2 font-semibold line-clamp-2">{book.title}</p>
+      {/* Table */}
+      {books.length > 0 && (
+        <table className="w-full text-white">
+          <thead>
+            <tr className="text-white/60 border-b border-white/10">
+              <th className="py-3 px-4 text-left">Title</th>
+              <th className="py-3 px-4 text-left">Author</th>
+              <th className="py-3 px-4 text-left">Price/Day</th>
+              <th className="py-3 px-4 text-left">Actions</th>
+            </tr>
+          </thead>
 
-              <p className="text-blue-600 font-bold">
-                {book.pricePerDay.toLocaleString()}đ / ngày
-              </p>
-            </Link>
-
-            <div className="flex justify-between mt-3">
-              <Link
-                to={`/books/edit/${book.id}`}
-                className="px-3 py-1 bg-yellow-500 text-white rounded"
+          <tbody>
+            {books.map((b) => (
+              <tr
+                key={b.id}
+                className="border-b border-white/10 hover:bg-white/5"
               >
-                Edit
-              </Link>
+                <td className="py-3 px-4">{b.title}</td>
+                <td className="py-3 px-4">{b.author}</td>
+                <td className="py-3 px-4">{b.pricePerDay} $</td>
 
-              <button
-                onClick={() => handleDelete(book.id)}
-                className="px-3 py-1 bg-red-600 text-white rounded"
-              >
-                Delete
-              </button>
-            </div>
-          </div>
-        ))}
-      </div>
+                <td className="py-3 px-4 flex items-center gap-2">
+                  <Link
+                    to={`/admin/books/${b.id}`}
+                    className="px-3 py-1 rounded-md bg-blue-500/10 text-blue-400 
+               hover:bg-blue-500/20 transition"
+                  >
+                    View
+                  </Link>
+
+                  <Link
+                    to={`/admin/books/edit/${b.id}`}
+                    className="px-3 py-1 rounded-md bg-yellow-500/10 text-yellow-400 
+               hover:bg-yellow-500/20 transition"
+                  >
+                    Edit
+                  </Link>
+
+                  <button
+                    onClick={() => handleDelete(b.id)}
+                    className="px-3 py-1 rounded-md bg-red-500/10 text-red-400 
+               hover:bg-red-500/20 transition"
+                  >
+                    Delete
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
     </div>
   );
 }

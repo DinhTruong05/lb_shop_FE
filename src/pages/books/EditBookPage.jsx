@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { getBookById, updateBook } from "../../api/bookApi";
-import { uploadImage } from "../../api/uploadApi";
 import { useParams, useNavigate } from "react-router-dom";
 
 export default function EditBookPage() {
@@ -10,167 +9,141 @@ export default function EditBookPage() {
   const [form, setForm] = useState({
     title: "",
     author: "",
-    pricePerDay: "",
     description: "",
+    pricePerDay: "",
     image: "",
   });
 
-  const [file, setFile] = useState(null);       // file mới (nếu có)
-  const [preview, setPreview] = useState(null); // preview ảnh mới
-  const [loading, setLoading] = useState(false);
+  const [imageFile, setImageFile] = useState(null);
 
-  // Load thông tin sách
   useEffect(() => {
-    getBookById(id).then((data) => {
-      setForm(data);
-      setPreview(null); // reset preview
-    });
+    getBookById(id).then((data) => setForm(data));
   }, [id]);
 
-  // Khi nhập text
-  const handleChange = (e) => {
+  const handleChange = (e) =>
     setForm({ ...form, [e.target.name]: e.target.value });
-  };
-
-  // Khi chọn file ảnh mới
-  const handleFileChange = (e) => {
-    const f = e.target.files[0];
-    setFile(f);
-
-    // Preview ảnh mới
-    if (f) {
-      setPreview(URL.createObjectURL(f));
-    }
-  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
 
-    try {
-      let imageUrl = form.image; // mặc định là ảnh cũ
-
-      // Nếu có chọn file mới → upload Cloudinary
-      if (file) {
-        imageUrl = await uploadImage(file);
-      }
-
-      // Gửi form-data update book
-      const formData = new FormData();
-      formData.append("title", form.title);
-      formData.append("author", form.author);
-      formData.append("pricePerDay", form.pricePerDay);
-      formData.append("description", form.description);
-      formData.append("oldImage", form.image);
-      if (file) formData.append("image", file);
-
-      await updateBook(id, formData);
-
-      alert("Cập nhật thành công!");
-      navigate("/books");
-
-    } catch (err) {
-      console.error("Update error:", err);
-      alert("Có lỗi khi cập nhật!");
-    } finally {
-      setLoading(false);
+    const payload = new FormData();
+    for (const key in form) {
+      if (key !== "image") payload.append(key, form[key]);
     }
+    
+    if (imageFile) {
+      payload.append("image", imageFile); // Chỉ gửi nếu có file mới
+    }
+    
+
+    await updateBook(id, payload);
+    alert("Updated!");
+    navigate("/admin/books");
   };
 
   return (
-    <div className="max-w-xl mx-auto mt-8 bg-white p-6 shadow rounded">
-      <h2 className="text-2xl font-bold mb-4">✏️ Chỉnh sửa sách</h2>
+    <div className="bg-[#1b2537] p-8 rounded-2xl border border-white/10 text-white">
+      {/* Title */}
+      <h2 className="text-3xl font-bold mb-6">Edit Book</h2>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
-        
-        {/* Tên sách */}
-        <div>
-          <label>Tên sách:</label>
-          <input
-            type="text"
-            className="w-full border p-2 rounded"
-            name="title"
-            value={form.title}
-            onChange={handleChange}
-          />
-        </div>
-
-        {/* Tác giả */}
-        <div>
-          <label>Tác giả:</label>
-          <input
-            type="text"
-            className="w-full border p-2 rounded"
-            name="author"
-            value={form.author}
-            onChange={handleChange}
-          />
-        </div>
-
-        {/* Ảnh */}
-        <div>
-          <label>Ảnh sách:</label>
-          <input
-            type="file"
-            className="w-full border p-2 rounded"
-            onChange={handleFileChange}
-          />
-
-          <div className="mt-3">
-            <p className="font-semibold mb-1">Ảnh hiện tại:</p>
-            <img
-              src={form.image}
-              alt="old"
-              className="w-40 h-40 object-cover rounded border"
+      <form onSubmit={handleSubmit} className="space-y-6">
+        {/* GRID 2 COLUMNS */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* TITLE */}
+          <div>
+            <label className="block mb-2 text-sm text-gray-300">Title</label>
+            <input
+              name="title"
+              value={form.title}
+              onChange={handleChange}
+              className="w-full h-12 rounded-lg bg-[#0f172a] border border-white/10 
+                        px-4 text-white placeholder-gray-500 focus:border-primary focus:outline-none"
+              placeholder="Enter book title"
             />
+          </div>
 
-            {preview && (
-              <>
-                <p className="font-semibold mt-3 mb-1">Ảnh mới (preview):</p>
-                <img
-                  src={preview}
-                  alt="new preview"
-                  className="w-40 h-40 object-cover rounded border"
-                />
-              </>
-            )}
+          {/* AUTHOR */}
+          <div>
+            <label className="block mb-2 text-sm text-gray-300">Author</label>
+            <input
+              name="author"
+              value={form.author}
+              onChange={handleChange}
+              className="w-full h-12 rounded-lg bg-[#0f172a] border border-white/10 
+                        px-4 text-white placeholder-gray-500 focus:border-primary focus:outline-none"
+              placeholder="Enter author name"
+            />
+          </div>
+
+          {/* PRICE */}
+          <div>
+            <label className="block mb-2 text-sm text-gray-300">
+              Price per Day
+            </label>
+            <input
+              name="pricePerDay"
+              value={form.pricePerDay}
+              onChange={handleChange}
+              className="w-full h-12 rounded-lg bg-[#0f172a] border border-white/10 
+                        px-4 text-white placeholder-gray-500 focus:border-primary focus:outline-none"
+              placeholder="10000"
+            />
+          </div>
+
+          {/* IMAGE UPLOAD */}
+          <div>
+            <label className="block mb-2 text-sm text-gray-300">
+              Book Image
+            </label>
+            <input
+              type="file"
+              onChange={(e) => setImageFile(e.target.files[0])}
+              className="w-full text-white file:mr-4 file:py-2 file:px-4 file:rounded-lg 
+                         file:border-0 file:bg-primary file:text-white 
+                         hover:file:bg-primary/80 cursor-pointer"
+            />
           </div>
         </div>
 
-        {/* Giá */}
+        {/* DESCRIPTION */}
         <div>
-          <label>Giá thuê / ngày:</label>
-          <input
-            type="number"
-            className="w-full border p-2 rounded"
-            name="pricePerDay"
-            value={form.pricePerDay}
-            onChange={handleChange}
-          />
-        </div>
-
-        {/* Mô tả */}
-        <div>
-          <label>Mô tả:</label>
+          <label className="block mb-2 text-sm text-gray-300">
+            Description
+          </label>
           <textarea
-            className="w-full border p-2 rounded"
             name="description"
-            rows="4"
             value={form.description}
             onChange={handleChange}
+            className="w-full h-32 rounded-lg bg-[#0f172a] border border-white/10 
+                      px-4 py-3 text-white placeholder-gray-500 focus:border-primary focus:outline-none"
+            placeholder="Enter description"
           />
         </div>
 
-        {/* Submit */}
-        <button
-          disabled={loading}
-          className={`w-full py-2 rounded text-white ${
-            loading ? "bg-gray-400" : "bg-blue-600 hover:bg-blue-700"
-          }`}
-        >
-          {loading ? "Đang cập nhật..." : "Cập nhật"}
-        </button>
+        {/* BUTTONS */}
+        <div className="flex justify-end gap-4 mt-6">
+          {/* CANCEL BUTTON */}
+          <button
+            type="button"
+            onClick={() => navigate("/admin/books")}
+            className="px-6 py-3 rounded-lg 
+             bg-[#292b4d] text-white 
+             border border-white/10
+             hover:bg-[#353765] 
+             transition-all"
+          >
+            Cancel
+          </button>
 
+          {/* SAVE BUTTON */}
+          <button
+            type="submit"
+            className="px-6 py-3 rounded-lg bg-primary text-white font-semibold 
+             hover:bg-primary/80 transition-all"
+          >
+            Save Changes
+          </button>
+        </div>
       </form>
     </div>
   );
