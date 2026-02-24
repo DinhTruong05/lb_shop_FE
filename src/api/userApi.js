@@ -5,7 +5,7 @@ export const userApi = {
   // GET ALL USERS
   // =============================
   getAllUsers: async () => {
-    const res = await axiosClient.get("/api/admin/users");
+    const res = await axiosClient.get("/admin/users");
     return res.data;
   },
 
@@ -13,7 +13,7 @@ export const userApi = {
   // GET USER DETAIL
   // =============================
   getUserById: async (id) => {
-    const res = await axiosClient.get(`/api/admin/users/${id}`);
+    const res = await axiosClient.get(`/admin/users/${id}`);
     return res.data;
   },
 
@@ -22,7 +22,7 @@ export const userApi = {
   // =============================
   createUser: async (data) => {
     // data có thể là JSON hoặc FormData
-    const res = await axiosClient.post("/api/admin/users", data, {
+    const res = await axiosClient.post("/admin/users", data, {
       headers: data instanceof FormData ? { "Content-Type": "multipart/form-data" } : {},
     });
     return res.data;
@@ -32,7 +32,7 @@ export const userApi = {
   // UPDATE USER
   // =============================
   updateUser: async (id, data) => {
-    const res = await axiosClient.put(`/api/admin/users/${id}`, data, {
+    const res = await axiosClient.put(`/admin/users/${id}`, data, {
       headers: data instanceof FormData ? { "Content-Type": "multipart/form-data" } : {},
     });
     return res.data;
@@ -42,7 +42,7 @@ export const userApi = {
   // DELETE USER
   // =============================
   deleteUser: async (id) => {
-    const res = await axiosClient.delete(`/api/admin/users/${id}`);
+    const res = await axiosClient.delete(`/admin/users/${id}`);
     return res.data;
   },
 };

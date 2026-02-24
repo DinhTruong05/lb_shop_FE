@@ -91,70 +91,72 @@ export default function UserListPage() {
             </thead>
 
             <tbody>
-              {users.map((u) => (
-                <tr
-                  key={u.id}
-                  className="border-b border-white/10 hover:bg-white/5 transition"
-                >
-                  {/* AVATAR */}
-                  <td className="py-3 px-4">
-                    <img
-                      src={u.avatar || `https://i.pravatar.cc/100?u=${u.id}`}
-                      className="w-10 h-10 rounded-full border border-white/10 object-cover"
-                      alt="avatar"
-                    />
-                  </td>
+              {users
+                .filter((u) => u.role !== "ADMIN")
+                .map((u) => (
+                  <tr
+                    key={u.id}
+                    className="border-b border-white/10 hover:bg-white/5 transition"
+                  >
+                    {/* AVATAR */}
+                    <td className="py-3 px-4">
+                      <img
+                        src={u.avatar || `https://i.pravatar.cc/100?u=${u.id}`}
+                        className="w-10 h-10 rounded-full border border-white/10 object-cover"
+                        alt="avatar"
+                      />
+                    </td>
 
-                  {/* FULL NAME */}
-                  <td className="py-3 px-4">{u.fullName}</td>
+                    {/* FULL NAME */}
+                    <td className="py-3 px-4">{u.fullName}</td>
 
-                  {/* USERNAME */}
-                  <td className="py-3 px-4">{u.username}</td>
+                    {/* USERNAME */}
+                    <td className="py-3 px-4">{u.username}</td>
 
-                  {/* EMAIL */}
-                  <td className="py-3 px-4">{u.email}</td>
+                    {/* EMAIL */}
+                    <td className="py-3 px-4">{u.email}</td>
 
-                  {/* ROLE */}
-                  <td className="py-3 px-4">
-                    <span
-                      className={`px-3 py-1 rounded-full text-xs ${
-                        u.role === "ADMIN"
-                          ? "bg-blue-500/20 text-blue-300"
-                          : "bg-purple-500/20 text-purple-300"
-                      }`}
-                    >
-                      {u.role}
-                    </span>
-                  </td>
-
-                  {/* ACTIONS */}
-                  <td className="py-3 px-4">
-                    <div className="flex items-center gap-4">
-                      <Link
-                        to={`/admin/users/${u.id}`}
-                        className="text-primary hover:underline"
+                    {/* ROLE */}
+                    <td className="py-3 px-4">
+                      <span
+                        className={`px-3 py-1 rounded-full text-xs ${
+                          u.role === "ADMIN"
+                            ? "bg-blue-500/20 text-blue-300"
+                            : "bg-purple-500/20 text-purple-300"
+                        }`}
                       >
-                        View
-                      </Link>
+                        {u.role}
+                      </span>
+                    </td>
 
-                      <Link
-                        to={`/admin/users/edit/${u.id}`}
-                        className="text-yellow-400 hover:underline"
-                      >
-                        Edit
-                      </Link>
+                    {/* ACTIONS */}
+                    <td className="py-3 px-4">
+                      <div className="flex items-center gap-4">
+                        <Link
+                          to={`/admin/users/${u.id}`}
+                          className="text-primary hover:underline"
+                        >
+                          View
+                        </Link>
 
-                      <button
-                        onClick={() => handleDelete(u.id)}
-                        className="text-red-400 hover:underline disabled:opacity-40"
-                        disabled={deletingId === u.id}
-                      >
-                        {deletingId === u.id ? "Deleting..." : "Delete"}
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
+                        <Link
+                          to={`/admin/users/edit/${u.id}`}
+                          className="text-yellow-400 hover:underline"
+                        >
+                          Edit
+                        </Link>
+
+                        <button
+                          onClick={() => handleDelete(u.id)}
+                          className="text-red-400 hover:underline disabled:opacity-40"
+                          disabled={deletingId === u.id}
+                        >
+                          {deletingId === u.id ? "Deleting..." : "Delete"}
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
             </tbody>
           </table>
         </div>

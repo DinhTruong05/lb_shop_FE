@@ -5,164 +5,289 @@ import StatusBadge from "../../components/StatusBadge";
 import QuickActionButton from "../../components/QuickActionButton";
 import ReaderListItem from "../../components/ReaderListItem";
 
-import { getDashboardSummary } from "../../api/dashboardApi";
+import {
+  getDashboardSummary,
+  getRentalPerformance,
+  getTopReaders,
+  getTopCategories,
+  getRevenueStats,
+} from "../../api/dashboardApi";
 
 export default function DashboardPage() {
+  // ====== STATE ======
   const [summary, setSummary] = useState({
     totalBooks: 0,
     borrowedBooks: 0,
     overdueBooks: 0,
+    monthlyRevenue: 0,
+    totalBooksChange: "+0",
+    borrowedChangeToday: "0",
+    overdueChange: "0",
+    monthlyRevenueChange: "0%",
   });
 
-  const [loading, setLoading] = useState(true);
+  const [rentalData, setRentalData] = useState([]);
+  const [topReaders, setTopReaders] = useState([]);
+  const [categoryStats, setCategoryStats] = useState([]); // [{ name, count }]
+  const [revenueStats, setRevenueStats] = useState([]);   // [{ label, value }]
 
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  // ====== FETCH DATA ======
   useEffect(() => {
-    const fetchSummary = async () => {
+    const fetchAll = async () => {
       try {
-        const data = await getDashboardSummary();
-        setSummary(data);
-      } catch (error) {
-        console.error("❌ Error fetching dashboard summary:", error);
+        setLoading(true);
+        setError(null);
+
+        const [
+          summaryRes,
+          rentalRes,
+          topReadersRes,
+          categoryRes,
+          revenueRes,
+        ] = await Promise.all([
+          getDashboardSummary(),
+          getRentalPerformance(),
+          getTopReaders(),
+          getTopCategories(),
+          getRevenueStats(),
+        ]);
+
+        setSummary((prev) => ({
+          ...prev,
+          ...(summaryRes || {}),
+        }));
+
+        setRentalData(rentalRes || []);
+        setTopReaders(topReadersRes || []);
+        setCategoryStats(categoryRes || []);
+        setRevenueStats(revenueRes || []);
+      } catch (err) {
+        console.error("❌ Error fetching dashboard data:", err);
+        setError("Có lỗi khi tải dữ liệu dashboard.");
       } finally {
         setLoading(false);
       }
     };
 
-    fetchSummary();
+    fetchAll();
   }, []);
 
-  const rentalData = [
-    { title: "The Midnight Library", member: "Alex Johnson", dueDate: "2024-08-15", status: "On Loan" },
-    { title: "Project Hail Mary", member: "Maria Garcia", dueDate: "2024-07-28", status: "Overdue" },
-    { title: "Dune", member: "Chen Wei", dueDate: "2024-08-05", status: "On Loan" },
-    { title: "Klara and the Sun", member: "Fatima", dueDate: "2024-07-30", status: "Due Soon" },
-  ];
+  // ====== CHART CALC (Revenue) ======
+  const chartWidth = 300;
+  const chartHeight = 150;
+  const chartPadding = 20;
 
-  const topReaders = [
-    { rank: 1, name: "Angela Reed", books: 32, avatarUrl: "https://i.pravatar.cc/300?img=8" },
-    { rank: 2, name: "Brandon Wallace", books: 28, avatarUrl: "https://i.pravatar.cc/300?img=10" },
-    { rank: 3, name: "Cynthia Lopez", books: 25, avatarUrl: "https://i.pravatar.cc/300?img=12" },
-  ];
+  const maxRevenue =
+    revenueStats.length > 0
+      ? Math.max(...revenueStats.map((p) => p.value))
+      : 1;
 
+  const stepX =
+    revenueStats.length > 1
+      ? (chartWidth - 2 * chartPadding) / (revenueStats.length - 1)
+      : 0;
+
+  const revenuePoints = revenueStats
+    .map((point, index) => {
+      const x = chartPadding + index * stepX;
+      const y =
+        chartHeight -
+        chartPadding -
+        (point.value / maxRevenue) * (chartHeight - 2 * chartPadding);
+
+      return `${x},${y}`;
+    })
+    .join(" ");
+
+  // ====== CHART CALC (Categories) ======
+  const maxCategoryCount =
+    categoryStats.length > 0
+      ? Math.max(...categoryStats.map((c) => c.count))
+      : 1;
+
+  // ====== LOADING / ERROR ======
   if (loading) {
     return <p className="text-white text-lg mt-6">Loading dashboard...</p>;
   }
 
+  if (error) {
+    return (
+      <p className="text-red-400 text-lg mt-6">
+        {error}
+      </p>
+    );
+  }
+
+  // ====== UI ======
   return (
     <div className="grid grid-cols-12 gap-8">
-
       {/* LEFT COLUMN */}
       <div className="col-span-12 lg:col-span-8 space-y-8">
-
         {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-          <StatCard title="Total Books" value={summary.totalBooks} change="+12 this month" positive />
-          <StatCard title="Borrowed" value={summary.borrowedBooks} change="-2 today" />
-          <StatCard title="Overdue" value={summary.overdueBooks} change="+1" />
-          <StatCard title="Monthly Revenue" value="$5,432" change="+10.1%" positive />
+          <StatCard
+            title="Total Books"
+            value={summary.totalBooks}
+            change={summary.totalBooksChange || "+0"}
+            positive
+          />
+          <StatCard
+            title="Borrowed"
+            value={summary.borrowedBooks}
+            change={
+              summary.borrowedChangeToday
+                ? `${summary.borrowedChangeToday} today`
+                : "0 today"
+            }
+          />
+          <StatCard
+            title="Overdue"
+            value={summary.overdueBooks}
+            change={summary.overdueChange || "+0"}
+          />
+          <StatCard
+            title="Monthly Revenue"
+            value={
+              typeof summary.monthlyRevenue === "number"
+                ? `$${summary.monthlyRevenue.toLocaleString()}`
+                : summary.monthlyRevenue || "$0"
+            }
+            change={summary.monthlyRevenueChange || "+0%"}
+            positive
+          />
         </div>
 
         {/* Rental Table */}
         <div className="bg-[#1b2537] rounded p-6 border border-white/10">
           <div className="flex justify-between mb-4">
             <h2 className="text-white text-xl font-bold">Rental Performance</h2>
-            <a href="#" className="text-primary text-sm font-semibold">View All</a>
+            <a href="#" className="text-primary text-sm font-semibold">
+              View All
+            </a>
           </div>
 
-          <table className="w-full">
-            <thead>
-              <tr className="text-white/60 border-b border-white/10">
-                <th className="py-3 px-4 text-sm">Book Title</th>
-                <th className="py-3 px-4 text-sm">Member</th>
-                <th className="py-3 px-4 text-sm">Due Date</th>
-                <th className="py-3 px-4 text-sm">Status</th>
-              </tr>
-            </thead>
-
-            <tbody>
-              {rentalData.map((row, i) => (
-                <tr key={i} className="text-white/90 border-b border-white/10">
-                  <td className="py-4 px-4">{row.title}</td>
-                  <td className="py-4 px-4">{row.member}</td>
-                  <td className="py-4 px-4">{row.dueDate}</td>
-                  <td className="py-4 px-4"><StatusBadge status={row.status} /></td>
+          {rentalData.length === 0 ? (
+            <p className="text-white/60 text-sm">
+              Chưa có dữ liệu thuê sách.
+            </p>
+          ) : (
+            <table className="w-full">
+              <thead>
+                <tr className="text-white/60 border-b border-white/10">
+                  <th className="py-3 px-4 text-sm text-left">Book Title</th>
+                  <th className="py-3 px-4 text-sm text-left">Member</th>
+                  <th className="py-3 px-4 text-sm text-left">Due Date</th>
+                  <th className="py-3 px-4 text-sm text-left">Status</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+
+              <tbody>
+                {rentalData.map((row, i) => (
+                  <tr
+                    key={i}
+                    className="text-white/90 border-b border-white/10"
+                  >
+                    <td className="py-4 px-4">{row.title}</td>
+                    <td className="py-4 px-4">{row.member}</td>
+                    <td className="py-4 px-4">{row.dueDate}</td>
+                    <td className="py-4 px-4">
+                      <StatusBadge status={row.status} />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
         </div>
 
-        {/* Bar Chart */}
+        {/* Bar Chart - Top Categories */}
         <div className="bg-[#1b2537] rounded p-6 border border-white/10">
           <p className="text-white text-xl font-bold">Top Categories</p>
           <p className="text-white/60 text-sm mb-6">Last 30 Days</p>
 
-          <div className="grid grid-flow-col gap-6 items-end text-center">
-            <div>
-              <div className="w-6 mx-auto bg-primary rounded-t" style={{ height: "50px" }}></div>
-              <p className="text-white/60 text-xs mt-2">Fiction</p>
+          {categoryStats.length === 0 ? (
+            <p className="text-white/60 text-sm">
+              Chưa có dữ liệu thể loại.
+            </p>
+          ) : (
+            <div className="grid grid-flow-col gap-6 items-end text-center">
+              {categoryStats.map((cat) => {
+                const height = 30 + (cat.count / maxCategoryCount) * 70; // 30–100px
+
+                return (
+                  <div key={cat.name}>
+                    <div
+                      className="w-6 mx-auto bg-primary rounded-t"
+                      style={{ height: `${height}px` }}
+                    ></div>
+                    <p className="text-white/60 text-xs mt-2">{cat.name}</p>
+                  </div>
+                );
+              })}
             </div>
-            <div>
-              <div className="w-6 mx-auto bg-primary rounded-t" style={{ height: "20px" }}></div>
-              <p className="text-white/60 text-xs mt-2">Sci-fi</p>
-            </div>
-            <div>
-              <div className="w-6 mx-auto bg-primary rounded-t" style={{ height: "90px" }}></div>
-              <p className="text-white/60 text-xs mt-2">Mystery</p>
-            </div>
-          </div>
+          )}
         </div>
 
-        {/* Line Chart */}
+        {/* Line Chart - Revenue */}
         <div className="bg-[#1b2537] rounded p-6 border border-white/10">
           <p className="text-white text-xl font-bold">Revenue</p>
           <p className="text-white/60 text-sm mb-4">Last 4 weeks</p>
 
-          <div className="h-40">
-            <svg viewBox="0 0 300 150" width="100%" height="100%">
-              <defs>
-                <linearGradient id="chartGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#3c83f6" stopOpacity="0.4" />
-                  <stop offset="100%" stopColor="#3c83f6" stopOpacity="0" />
-                </linearGradient>
-              </defs>
+          {revenueStats.length === 0 ? (
+            <p className="text-white/60 text-sm">
+              Chưa có dữ liệu doanh thu.
+            </p>
+          ) : (
+            <>
+              <div className="h-40">
+                <svg
+                  viewBox={`0 0 ${chartWidth} ${chartHeight}`}
+                  width="100%"
+                  height="100%"
+                >
+                  {/* Đường line chính */}
+                  <polyline
+                    points={revenuePoints}
+                    stroke="#3c83f6"
+                    strokeWidth="3"
+                    fill="none"
+                  />
+                </svg>
+              </div>
 
-              <path
-                d="M0 120 Q50 20 100 60 T200 40 T300 120 V150 H0 Z"
-                fill="url(#chartGradient)"
-              />
-
-              <path
-                d="M0 120 Q50 20 100 60 T200 40 T300 120"
-                stroke="#3c83f6"
-                strokeWidth="3"
-                fill="none"
-              />
-            </svg>
-          </div>
-
-          <div className="flex justify-between text-white/60 text-xs mt-2">
-            <p>Week 1</p>
-            <p>Week 2</p>
-            <p>Week 3</p>
-            <p>Week 4</p>
-          </div>
+              <div className="flex justify-between text-white/60 text-xs mt-2">
+                {revenueStats.map((p) => (
+                  <p key={p.label}>{p.label}</p>
+                ))}
+              </div>
+            </>
+          )}
         </div>
-
       </div>
 
       {/* RIGHT COLUMN */}
       <div className="col-span-12 lg:col-span-4 space-y-8">
-
+        {/* Top Readers */}
         <div className="bg-[#1b2537] rounded p-6 border border-white/10">
           <h2 className="text-white text-xl font-bold mb-4">Top Readers</h2>
-          <ul className="space-y-4">
-            {topReaders.map((item) => (
-              <ReaderListItem key={item.rank} {...item} />
-            ))}
-          </ul>
+
+          {topReaders.length === 0 ? (
+            <p className="text-white/60 text-sm">
+              Chưa có dữ liệu người đọc.
+            </p>
+          ) : (
+            <ul className="space-y-4">
+              {topReaders.map((item) => (
+                <ReaderListItem key={item.rank} {...item} />
+              ))}
+            </ul>
+          )}
         </div>
 
+        {/* Quick Actions */}
         <div className="bg-[#1b2537] rounded p-6 border border-white/10">
           <h2 className="text-white text-xl font-bold mb-4">Quick Actions</h2>
 
@@ -173,7 +298,6 @@ export default function DashboardPage() {
             <QuickActionButton icon="lab_profile" label="Report" />
           </div>
         </div>
-
       </div>
     </div>
   );
